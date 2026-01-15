@@ -65,7 +65,9 @@ export default function HomePage() {
           totalNoShares: bigint;
           totalPool: bigint;
         };
-        const yesPrice = Number(priceResult.result) / 100; // Convert basis points to percentage
+        // Contract returns price with 1e18 precision (1e18 = 100%)
+        // Divide by 1e16 to convert to percentage (0-100)
+        const yesPrice = Number(priceResult.result) / 1e16;
 
         markets.push({
           address: marketAddresses[i],
