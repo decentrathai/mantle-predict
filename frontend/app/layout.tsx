@@ -7,10 +7,20 @@ import { Header } from "@/components/Header";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://mantlepredict.com"),
   title: "MantlePredict - RWA Prediction Markets",
   description:
     "Decentralized prediction markets for Real World Asset events on Mantle Network. Bet on commodities, bonds, real estate, and more.",
   keywords: ["prediction market", "Mantle", "DeFi", "RWA", "blockchain"],
+  icons: {
+    icon: "/favicon.png",
+    apple: "/logo.png",
+  },
+  openGraph: {
+    title: "MantlePredict - RWA Prediction Markets",
+    description: "Decentralized prediction markets for Real World Asset events on Mantle Network.",
+    images: ["/logo.png"],
+  },
 };
 
 export default function RootLayout({

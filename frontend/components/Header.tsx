@@ -2,6 +2,7 @@
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Link from "next/link";
+import Image from "next/image";
 
 export function Header() {
   return (
@@ -9,10 +10,14 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between px-4 mx-auto max-w-7xl">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-lg font-bold text-primary-foreground">M</span>
-            </div>
-            <span className="text-xl font-bold text-foreground">
+            <Image
+              src="/logo.png"
+              alt="MantlePredict Logo"
+              width={40}
+              height={40}
+              className="rounded-lg"
+            />
+            <span className="text-xl font-bold text-foreground hidden sm:inline">
               Mantle<span className="text-primary">Predict</span>
             </span>
           </Link>
