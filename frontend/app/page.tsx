@@ -1,23 +1,90 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
-import { useReadContract } from "wagmi";
-import { CONTRACTS, FACTORY_ABI } from "@/lib/contracts";
+import { useReadContract, useReadContracts } from "wagmi";
+import { formatEther } from "viem";
+import { CONTRACTS, FACTORY_ABI, MARKET_ABI } from "@/lib/contracts";
 import { MarketCard } from "@/components/MarketCard";
 import { CATEGORIES, type Category } from "@/lib/utils";
 
 export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<Category>("All");
 
-  // Read all markets from factory
-  const { data: markets, isLoading } = useReadContract({
+  // Read all market addresses from factory
+  const { data: marketAddresses, isLoading: isLoadingAddresses } = useReadContract({
     address: CONTRACTS.FACTORY,
     abi: FACTORY_ABI,
     functionName: "getMarkets",
   });
 
-  // 20 Prediction Markets - inspired by Polymarket trends
+  // Fetch market info for each address
+  const marketContracts = useMemo(() => {
+    if (!marketAddresses || marketAddresses.length === 0) return [];
+    return marketAddresses.flatMap((address) => [
+      {
+        address,
+        abi: MARKET_ABI,
+        functionName: "getMarketInfo",
+      } as const,
+      {
+        address,
+        abi: MARKET_ABI,
+        functionName: "getPrice",
+        args: [true], // Yes price
+      } as const,
+    ]);
+  }, [marketAddresses]);
+
+  const { data: marketData, isLoading: isLoadingMarkets } = useReadContracts({
+    contracts: marketContracts,
+    query: {
+      enabled: marketContracts.length > 0,
+    },
+  });
+
+  // Transform on-chain data into display format
+  const onChainMarkets = useMemo(() => {
+    if (!marketAddresses || !marketData) return [];
+
+    const markets = [];
+    for (let i = 0; i < marketAddresses.length; i++) {
+      const infoResult = marketData[i * 2];
+      const priceResult = marketData[i * 2 + 1];
+
+      if (infoResult?.status === "success" && priceResult?.status === "success") {
+        const info = infoResult.result as {
+          question: string;
+          category: string;
+          endTime: bigint;
+          resolutionTime: bigint;
+          resolver: string;
+          resolved: boolean;
+          outcome: boolean;
+          totalYesShares: bigint;
+          totalNoShares: bigint;
+          totalPool: bigint;
+        };
+        const yesPrice = Number(priceResult.result) / 100; // Convert basis points to percentage
+
+        markets.push({
+          address: marketAddresses[i],
+          question: info.question,
+          category: info.category,
+          yesPrice: Math.round(yesPrice),
+          noPrice: Math.round(100 - yesPrice),
+          totalPool: Number(formatEther(info.totalPool)).toFixed(2),
+          endTime: Number(info.endTime),
+          resolved: info.resolved,
+        });
+      }
+    }
+    return markets;
+  }, [marketAddresses, marketData]);
+
+  const isLoading = isLoadingAddresses || isLoadingMarkets;
+
+  // 20 Example Prediction Markets - shown when no on-chain markets or as fallback
   const mockMarkets = [
     // === CRYPTO (6 markets) ===
     {
@@ -230,9 +297,27 @@ export default function HomePage() {
     },
   ];
 
-  const displayMarkets = mockMarkets.filter(
+  // Combine on-chain markets with mock markets (on-chain first)
+  const allMarkets = useMemo(() => {
+    // Get addresses of on-chain markets to avoid duplicates
+    const onChainAddresses = new Set(onChainMarkets.map((m) => m.address.toLowerCase()));
+    // Filter out mock markets that have the same address as on-chain markets
+    const filteredMockMarkets = mockMarkets.filter(
+      (m) => !onChainAddresses.has(m.address.toLowerCase())
+    );
+    // On-chain markets first, then mock markets
+    return [...onChainMarkets, ...filteredMockMarkets];
+  }, [onChainMarkets, mockMarkets]);
+
+  const displayMarkets = allMarkets.filter(
     (m) => selectedCategory === "All" || m.category === selectedCategory
   );
+
+  // Calculate stats from all markets
+  const totalVolume = useMemo(() => {
+    const onChainVolume = onChainMarkets.reduce((sum, m) => sum + parseFloat(m.totalPool), 0);
+    return onChainVolume > 0 ? onChainVolume.toFixed(2) : "8.2K";
+  }, [onChainMarkets]);
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-8">
@@ -257,11 +342,11 @@ export default function HomePage() {
       {/* Stats Bar */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-card rounded-lg p-4 text-center border border-border">
-          <div className="text-2xl font-bold text-primary">20</div>
-          <div className="text-sm text-muted-foreground">Active Markets</div>
+          <div className="text-2xl font-bold text-primary">{onChainMarkets.length > 0 ? onChainMarkets.length : 20}</div>
+          <div className="text-sm text-muted-foreground">{onChainMarkets.length > 0 ? "Live Markets" : "Example Markets"}</div>
         </div>
         <div className="bg-card rounded-lg p-4 text-center border border-border">
-          <div className="text-2xl font-bold text-primary">$8.2K</div>
+          <div className="text-2xl font-bold text-primary">{onChainMarkets.length > 0 ? `${totalVolume} MNT` : "$8.2K"}</div>
           <div className="text-sm text-muted-foreground">Total Volume</div>
         </div>
         <div className="bg-card rounded-lg p-4 text-center border border-border">
@@ -289,7 +374,7 @@ export default function HomePage() {
             {category}
             {category !== "All" && (
               <span className="ml-2 text-xs opacity-70">
-                ({mockMarkets.filter((m) => m.category === category).length})
+                ({allMarkets.filter((m) => m.category === category).length})
               </span>
             )}
           </button>
