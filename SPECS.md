@@ -347,7 +347,7 @@ NEXT_PUBLIC_WALLET_CONNECT_ID=your_walletconnect_id
 - **Developer**: decentrathai
 - **AI Assistant**: Claude Opus 4.5
 - **Network**: Mantle Network
-- **Built for**: Mantle Network Hackathon 2026
+- **Built for**: Mantle Network Hackathon 2025
 
 ---
 

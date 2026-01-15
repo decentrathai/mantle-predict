@@ -37,27 +37,33 @@ export default function RootLayout({
             <main className="flex-1">{children}</main>
             <footer className="border-t border-border/40 py-6">
               <div className="container mx-auto max-w-7xl px-4">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                  <p className="text-sm text-muted-foreground">
-                    Built for Mantle Network Hackathon 2026
-                  </p>
-                  <div className="flex items-center gap-4">
-                    <a
-                      href="https://mantle.xyz"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      Mantle Network
-                    </a>
-                    <a
-                      href="https://faucet.sepolia.mantle.xyz"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      Get Testnet MNT
-                    </a>
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20">
+                    <span className="text-xs text-yellow-500">Testnet Only</span>
+                    <span className="text-xs text-muted-foreground">Running on Mantle Sepolia</span>
+                  </div>
+                  <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full">
+                    <p className="text-sm text-muted-foreground">
+                      Built for Mantle Network Hackathon 2025
+                    </p>
+                    <div className="flex items-center gap-4">
+                      <a
+                        href="https://mantle.xyz"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        Mantle Network
+                      </a>
+                      <a
+                        href="https://faucet.sepolia.mantle.xyz"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        Get Testnet MNT
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
