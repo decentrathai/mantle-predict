@@ -34,6 +34,12 @@ export function Header() {
             >
               Create Market
             </Link>
+            <Link
+              href="/about"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              About
+            </Link>
           </nav>
         </div>
         <ConnectButton />
